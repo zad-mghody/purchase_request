@@ -1,0 +1,145 @@
+<odoo>
+    <data>
+
+        <record id="purchase_request_tree" model="ir.ui.view">
+            <field name="name">purchase.request.tree</field>
+            <field name="model">purchase.request</field>
+            <field name="arch" type="xml">
+                <tree string="purchase_request_tree">
+                    <field name="name"/>
+                    <field name="requested_by"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="state" widget="badge"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="purchase_request_form" model="ir.ui.view">
+            <field name="name">purchase.request.form</field>
+            <field name="model">purchase.request</field>
+            <field name="arch" type="xml">
+                <form string="purchase_request_form">
+                    <header>
+                        <button name="submit_for_approval" string="Submit for Approval" type="object"
+                                class="btn-primary" states="draft"/>
+                        <button name="cancel" string="Cancel" type="object" class="btn-secondary" states="draft"/>
+                        <button name="approve" string="Approve" type="object" class="btn-primary"
+                                states="to_be_approved"/>
+                        <button name="create_po" string="create PO" type="object" class="btn-primary"
+                                attrs="{'invisible': ['|',('po_active', '=', False),('state','!=','approve')]}"/>
+                        <button name="reject" string="Reject" type="object"
+                                class="btn-secondary" states="to_be_approved"/>
+                        <button name="reset_to_draft" string="Reset to draft" type="object"
+                                class="btn-primary" states="cancel"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_open_orders"
+                                    attrs="{'invisible': [('orders_count', '=', 0)]}"
+                                    class="oe_stat_button"
+                                    type="object" icon="fa-list-ul">
+                                <div class="o_stat_info o_field_widget">
+                                    <span class="oe_stat_value">
+                                        <field name="orders_count" class="oe_stat_value"/>
+                                    </span>
+                                    <span class="o_stat_text">Purchase Orders</span>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <span class="o_form_label">Purchase Request No.</span>
+                            <h1 class="d-flex">
+                                <field name="sequence" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="name"
+                                       attrs="{'readonly': [('state', 'in', ('approve', 'cancel', 'reject'))]}"/>
+                                <field name="requested_by"
+                                       attrs="{'readonly': [('state', 'in', ('approve', 'cancel', 'reject'))]}"/>
+                            </group>
+                            <group>
+                                <field name="start_date"
+                                       attrs="{'readonly': [('state', 'in', ('approve', 'cancel', 'reject'))]}"/>
+                                <field name="end_date"
+                                       attrs="{'readonly': [('state', 'in', ('approve', 'cancel', 'reject'))]}"/>
+                                <field name="po_active" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Products" name="products">
+                                <field name="order_lines_ids" widget="one2many"
+                                       attrs="{'readonly': [('state', 'in', ('approve', 'cancel', 'reject'))]}"/>
+                                <div class="oe_subtotal_footer oe_right">
+                                    <p>
+                                        <strong>Total sum:
+                                            <field name="total_price"/>
+                                        </strong>
+                                    </p>
+                                </div>
+                            </page>
+                            <page string="Rejection Reasons"
+                                  attrs="{'invisible': [('state', '!=', 'reject')]}">
+                                <field name="reject_reasons_ids" widget="one2many">
+                                    <tree>
+                                        <field name="reject_reason"/>
+                                        <field name="reject_user"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" groups="base.group_user"
+                               options="{'post_refresh': 'recipients'}"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="purchase_request_seq" model="ir.sequence">
+            <field name="name">Purchase Request</field>
+            <field name="code">purchase_request.sequence</field>
+            <field name="prefix">DM</field>
+            <field name="padding">5</field>
+        </record>
+
+        <!--        <record id="action_purchase_order_tree" model="ir.actions.act_window">-->
+        <!--            <field name="name">Purchase Orders</field>-->
+        <!--            <field name="res_model">purchase.order</field>-->
+        <!--            <field name="view_mode">tree,form</field>-->
+        <!--            <field name="domain">[('purchase_request_id', '=', active_id)]</field>-->
+        <!--            <field name="context">{'search_default_group_by_partner_id': 1}</field>-->
+        <!--            <field name="search_view_id" ref="purchase.view_purchase_order_filter"/>-->
+        <!--            <field name="help" type="html">-->
+        <!--                <p class="oe_view_nocontent_create">-->
+        <!--                    Click the Create button to create a new purchase order.-->
+        <!--                </p>-->
+        <!--            </field>-->
+        <!--        </record>-->
+
+        <record id="purchase_request_action" model="ir.actions.act_window">
+            <field name="name">All Purchase Requests</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">purchase.request</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new Purchase Request
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="purchase_requests_menu"
+                  name="Purchase Requests"
+                  parent="purchase.menu_procurement_management"
+                  sequence="16"
+                  action="purchase_request_action"/>
+
+    </data>
+</odoo>
